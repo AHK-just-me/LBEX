@@ -30,7 +30,7 @@ LBEX_Add(HLB, ByRef String) {
 ;                                Otherwise pass 0 and use the other parameters to specify the content and other options.
 ;                 ------------------------------------------------------------------------------------------------------
 ;                 Content     -  Content to be displayed in the list box.
-;                 Delimiter   -  The a field separator to be used.
+;                 Delimiter   -  The field separator to be used.
 ;                 FontOptions -  The 'Options' parameter to be used for Gui, Font, ...
 ;                 FontName    -  The 'Name' parameter to be used for Gui, Font, ...
 ; Return values:  Returns the ideal width of the list box in respect to the content.
@@ -370,7 +370,8 @@ LBEX_SetSelStart(HLB, Index) {
 }
 ; ======================================================================================================================
 ; SetTabStops     Sets the tab-stop positions in a list box.
-; Parameters:     TabArray -  Array of integers containing the tab stops as character positions.
+; Parameters:     TabArray -  Array of integers or floating point numbers containing the tab stops as character
+;                             positions according to the average character width of the used font.
 ;                             The tab stops must be sorted in ascending order; backward tabs are not allowed.
 ;                             If only one value is passed, the list box will have tab stops separated by this distance.
 ;                             If TabArray is set to 0, the list box will be reset to the default tab stops.
