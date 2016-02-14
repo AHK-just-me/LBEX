@@ -47,6 +47,8 @@ Gets the index of the item nearest the specified point in a list box.
 Selects or deselects one or more consecutive items in a multiple-selection list box.
 - `SelectString()`  
 Searches a list box for an item that begins with the characters in a specified string.
+- `SetColumnTabs()`  
+Sets the tab stop positions according to the columns of a list box.
 - `SetCurSel()`  
 Selects an item and scrolls it into view, if necessary.
 - `SetFocus()`  
