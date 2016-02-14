@@ -1,9 +1,10 @@
 ﻿; ======================================================================================================================
 ; Namespace:      LBEX
 ; Function:       Some functions to use with AHK GUI ListBox controls (LB).
-; Tested with:    AHK 1.1.16.04 (A32/U32/U64)
-; Tested on:      Win 8.1 Pro (x64)
+; Tested with:    AHK 1.1.23.01 (A32/U32/U64)
+; Tested on:      Win 10 Pro (x64)
 ; Changelog:
+;     1.0.01.00/2016-02-14/just me - added LBEX_SetColumnTabs()
 ;     1.0.00.00/2014-10-01/just me - initial release
 ; Common function parameters (not mentioned in the parameter descriptions of functions):
 ;     HLB         -  Handle to the list box control.
@@ -302,6 +303,67 @@ LBEX_SelectString(HLB, ByRef String, Index := 0) {
    Static LB_SELECTSTRING := 0x018C
    SendMessage, % LB_SELECTSTRING, % (Index - 1), % &String, , % "ahk_id " . HLB
    Return (ErrorLevel + 1)
+}
+; ======================================================================================================================
+; SetColumnTabs   Sets the tab stop positions according to the columns of a list box.
+; Parameters:     ColGap   -  The amount of average characters widths used to separate the columns as an integer or
+;                             floating point number. The minimum is 1.
+;                             Default: 2
+; Return values:  True if successful; otherwise False.
+; Remarks:        The list box must have been created with the LBS_USETABSTOPS style.
+;                 Columns must be separated by exactly one tab.
+; Credits:        Original idea by jballi - autohotkey.com/boards/viewtopic.php?p=69544#p69544
+; ======================================================================================================================
+LBEX_SetColumnTabs(HLB, ColGap := 2) {
+   Static StrDBU := "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+   Static LenDBU := StrLen(StrDBU)
+   ; Get the items
+   ControlGet, Items, List, , , ahk_id %HLB%
+   If (Items = "") ; error or empty list box
+      Return False
+   ; Check ColGap parameter
+   If ((ColGap + 0) < 1)
+      ColGap := 1
+   ; Get the font
+   HFONT := DllCall("SendMessage", "Ptr", HLB, "UInt", 0x0031, "Ptr", 0, "Ptr", 0, "UPtr")
+   ; Get the DC
+   HDC := DllCall("GetDC", "Ptr", HLB, "UPtr")
+   ; Select the font
+   DllCall("SelectObject", "Ptr", HDC, "Ptr", HFONT)
+   ; Get the horizontal dialog base units
+   VarSetCapacity(SIZE, 8, 0)
+   DllCall("GetTextExtentPoint32", "Ptr", HDC, "Str", StrDBU, "Int", LenDBU, "Ptr", &SIZE)
+   HDBU := Round(NumGet(SIZE, "Int") / LenDBU)
+   ; Calculate the tab stop units per column
+   ColUnits := []
+   Loop, Parse, Items, `n
+   {
+      Loop, Parse, A_LoopField, `t
+      {
+         If (ColUnits[A_Index] = "")
+            ColUnits[A_Index] := 0
+         If !(Len := StrLen(A_LoopField))
+            Continue
+         DllCall("GetTextExtentPoint32", "Ptr", HDC, "Str", A_LoopField, "Int", Len, "Ptr", &SIZE)
+         Units := Round((NumGet(SIZE, 0, "Int") / HDBU * 4) + (4 * ColGap))
+         If (Units > ColUnits[A_Index])
+            ColUnits[A_Index] := Units
+      }
+   }
+   ; Release the DC
+   DllCall("ReleaseDC", "Ptr", HLB, "Ptr", HDC)
+   ; If less than two columns were found, reset the tab stops to their default
+   TabCount := ColUnits.Length()
+   If (TabCount < 2)
+      Return LBEX_SetTabStops(HLB, 0)
+   ; Build the LB_SETTABSTOPS message array parameter
+   VarSetCapacity(TabArray, TabCount * 4, 0)
+   TabAddr := &TabArray
+   TabPos := 0
+   For Index, Units In ColUnits
+      TabAddr := NumPut(TabPos += Units, TabAddr + 0, "UInt")
+   ; Set the tab stops - LB_SETTABSTOPS = 0x0192
+   Return DllCall("SendMessage", "Ptr", HLB, "UInt", 0x0192, "Ptr", TabCount, "Ptr", &TabArray, "UInt")
 }
 ; ======================================================================================================================
 ; SetCurSel       Selects an item and scrolls it into view, if necessary.
