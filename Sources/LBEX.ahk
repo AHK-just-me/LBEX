@@ -4,6 +4,7 @@
 ; Tested with:    AHK 1.1.23.01 (A32/U32/U64)
 ; Tested on:      Win 10 Pro (x64)
 ; Changelog:
+;     1.0.02.00/2020-08-19/just me - removes unused parameter Index from LBEX_GetTopIndex()
 ;     1.0.01.00/2016-02-14/just me - added LBEX_SetColumnTabs()
 ;     1.0.00.00/2014-10-01/just me - initial release
 ; Common function parameters (not mentioned in the parameter descriptions of functions):
@@ -238,7 +239,7 @@ LBEX_GetTextLen(HLB, Index) {
 ; GetTopIndex     Gets the index of the first visible item in a list box.
 ; Return values:  The return value is the index of the first visible item in the list box.
 ; ======================================================================================================================
-LBEX_GetTopIndex(HLB, Index) {
+LBEX_GetTopIndex(HLB) {
    Static LB_GETTOPINDEX := 0x018E
    SendMessage, % LB_GETTOPINDEX, 0, 0, , % "ahk_id " . HLB
    Return (ErrorLevel + 1)
